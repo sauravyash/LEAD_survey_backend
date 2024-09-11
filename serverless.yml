@@ -1,15 +1,26 @@
-service: lead-survey-backend
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+# org: yaash
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+# app: lead-survey-app
+service: lead-survey-backend-api
+
+build:
+  esbuild:
+    bundle: true
+    # minify: true
+    sourcemap: true
 
 provider:
   name: aws
   runtime: nodejs20.x
   stage: ${opt:stage, 'dev'}
-  region: 'ap-southeast-2'
+  region: "ap-southeast-2"
   environment:
     DYNAMODB_TABLE: ${self:service}-${self:provider.stage}
     NODE_ENV: ${self:provider.stage}
     API_BASE_URL: ${opt:stage, 'dev'}-api.example.com
-  
+    S3_BUCKET: ${self:service}-${self:provider.stage}
+
   iam:
     role:
       name: ${self:service}-${self:provider.stage}-CloudFormationRole
@@ -25,7 +36,14 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 plugins:
-  - serverless-typescript
+  - serverless-offline
+  # - serverless-plugin-typescript
+
+
+stages:
+  default:
+    S3_BUCKET: ${self:provider.environment.S3_BUCKET}
+
 
 resources:
   Resources:
@@ -38,38 +56,46 @@ resources:
         KeySchema:
           - AttributeName: id
             KeyType: HASH
-        BillingMode: PROVISIONED
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
+        BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
+    ReportsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+    ReportsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref ReportsBucket
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal: "*"
+              Action:
+                - s3:GetObject
+              Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
 
 functions:
-  generatePDF: 
-    handler: src/handlers/generatePDF.handler
+  ping:
+    handler: src/handlers/ping/ping.handler
     events:
       - http:
-          path: generate-pdf
-          method: post
-          cors: true
-    dependsOn:
-      - ItemsTable
-  create:
-    handler: src/handlers/create.handler
-    events:
-      - http:
-          path: items
-          method: post
-          cors: true
-    dependsOn:
-      - ItemsTable
-
-  get:
-    handler: src/handlers/get.handler
-    events:
-      - http:
-          path: items/{id}
+          path: ping
           method: get
           cors: true
+    # dependsOn:
+    #   - ItemsTable
+  generate-report:
+    handler: src/handlers/report/generate-report.handler
+    events:
+      - http:
+          path: generate-report
+          method: post
+          cors: true
     dependsOn:
-      - ItemsTable
+      - ReportsBucket

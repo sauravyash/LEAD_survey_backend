@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../src/handlers/ping/ping.js"],
+  "sourcesContent": ["export const handler = async (event) => {\n  return {\n    statusCode: 200,\n    body: JSON.stringify(\n      {\n        message: 'Serverless is mingin! Your function executed successfully!',\n        input: event,\n      },\n      null,\n      2\n    ),\n  };\n};"],
+  "mappings": ";AAAO,IAAM,UAAU,OAAO,UAAU;AACtC,SAAO;AAAA,IACL,YAAY;AAAA,IACZ,MAAM,KAAK;AAAA,MACT;AAAA,QACE,SAAS;AAAA,QACT,OAAO;AAAA,MACT;AAAA,MACA;AAAA,MACA;AAAA,IACF;AAAA,EACF;AACF;",
+  "names": []
+}

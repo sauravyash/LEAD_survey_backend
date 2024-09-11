@@ -1,0 +1,118 @@
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background-color: #5b5fc7;
+  color: white;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2.5em;
+}
+
+.header p {
+  margin: 5px 0 0;
+  font-size: 1.2em;
+}
+
+.risk-score {
+  font-weight: bold;
+  color: #5b5fc7;
+}
+
+.flex-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+
+.text-content {
+  flex: 1;
+  padding-right: 20px;
+}
+
+.gauge {
+  flex: 1;
+  position: relative;
+}
+
+#svg-gauge-needle {
+  transform-origin: 50% 91%;
+  transform: translate(-50%, 50%) scale(1.2) rotate(45deg);
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+}
+
+.gauge .min-value, .gauge .max-value {
+  position: absolute;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.gauge .min-value {
+  left: 90px;
+  bottom: 20px;
+}
+
+.gauge .max-value {
+  right: 75px;
+  bottom: 20px;
+}
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-weight: normal;
+}
+
+th.good {
+  background-color: #4caf50;
+  color: white;
+}
+
+th.improve {
+  background-color: #e78d3b;
+  color: white;
+}
+
+.checkmark::before, .cross::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+}
+
+.checkmark::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='green' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.cross::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e78d3b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
+}

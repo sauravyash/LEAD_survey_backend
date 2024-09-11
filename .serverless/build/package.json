@@ -2,11 +2,10 @@
   "name": "lead-survey-backend",
   "version": "1.0.0",
   "author": "Arludo",
+  "type": "module",
   "scripts": {
     "start": "sls offline",
-    "deploy:dev": "serverless deploy --stage dev",
-    "build": "tsc",
-    "test": "jest"
+    "deploy:dev": "serverless deploy --stage dev"
   },
   "dependencies": {}
 }

@@ -2,24 +2,26 @@
   "name": "lead-survey-backend",
   "version": "1.0.0",
   "author": "Arludo",
+  "type": "module",
   "scripts": {
     "start": "sls offline",
-    "deploy:dev": "serverless deploy --stage dev",
-    "build": "tsc",
-    "test": "jest"
+    "deploy:dev": "serverless deploy --stage dev"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.143",
     "@types/node": "^22.1.0",
     "@types/pdfkit": "^0.13.4",
     "@types/uuid": "^10.0.0",
-    "serverless": "^4.1.21",
-    "serverless-typescript": "^0.0.5",
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "@middy/core": "^5.4.6",
+    "@middy/http-json-body-parser": "^5.4.6",
     "aws-sdk": "^2.1671.0",
     "pdfkit": "^0.15.0",
+    "puppeteer": "^23.2.1",
+    "serverless": "^4.1.21",
+    "serverless-offline": "^13.7.0",
     "uuid": "^10.0.0"
   }
 }

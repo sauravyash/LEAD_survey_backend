@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CogDrisk Dementia Risk Assessment</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>CogDrisk</h1>
+        <p>PERSONALISED DEMENTIA RISK ASSESSMENT</p>
+    </div>
+    
+    <p>Date of Assessment: 5/14/2024</p>
+    <p>Congratulations on completing the dementia risk assessment.</p>
+    
+    <div class="flex-container">
+        <div class="text-content">
+            <p>Your CogDrisk dementia score is <span class="risk-score">30.25</span></p>
+            <p>The risk score has been developed using an evidence-based approach. The risk score ranges from 0 to 48.25, with a higher score indicating higher risk.</p>
+        </div>
+        <div class="gauge">
+            <img src="gauge.svg" alt="gauge" />
+            <img src="gauge-needle.svg" alt="gauge-needle" id="svg-gauge-needle" />
+            <span class="min-value">0</span>
+            <span class="max-value">48.25</span>
+        </div>
+    </div>
+    
+    <p>Below is your personalised report based on your current health and lifestyle factors.</p>
+    
+    <table>
+        <tr>
+            <th></th>
+            <th class="good">Keep up the good work!</th>
+            <th class="improve">Room for improvement</th>
+        </tr>
+        <tr>
+            <td></td>
+            <td>You reported:</td>
+            <td>You reported:</td>
+        </tr>
+        <tr>
+            <td>Demographic factor</td>
+            <td></td>
+            <td><span class="cross"></span>Your highest qualification was less than secondary education</td>
+        </tr>
+        <tr>
+            <td>Medical risk factors</td>
+            <td>
+                <p><span class="checkmark"></span>No prior stroke</p>
+                <p><span class="checkmark"></span>Good levels of sleep</p>
+            </td>
+            <td>
+                <p><span class="cross"></span>Your weight is in the obese range</p>
+                <p><span class="cross"></span>Having high cholesterol level</p>
+                <p><span class="cross"></span>Having diabetes</p>
+                <p><span class="cross"></span>Having prior brain injury</p>
+                <p><span class="cross"></span>Having hypertension</p>
+                <p><span class="cross"></span>Having atrial fibrillation</p>
+                <p><span class="cross"></span>Having depressive symptoms</p>
+            </td>
+        </tr>
+        <tr>
+            <td>Lifestyle habits and diet</td>
+            <td>
+                <p><span class="checkmark"></span>High levels of social engagement</p>
+                <p><span class="checkmark"></span>You drink low to moderate levels of alcohol</p>
+                <p><span class="checkmark"></span>You do not smoke</p>
+            </td>
+            <td>
+                <p><span class="cross"></span>Low levels of physical activity</p>
+                <p><span class="cross"></span>Low levels of cognitive engagement</p>
+                <p><span class="cross"></span>Eating fish less than once a week</p>
+            </td>
+        </tr>
+        <tr>
+            <td>Environmental exposure</td>
+            <td></td>
+            <td><span class="cross"></span>Being exposed to pesticides</td>
+        </tr>
+    </table>
+</body>
+</html>
