@@ -2,85 +2,22 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "The AWS CloudFormation template for this Serverless application",
   "Resources": {
-    "ServerlessDeploymentBucket": {
-      "Type": "AWS::S3::Bucket",
-      "Properties": {
-        "BucketEncryption": {
-          "ServerSideEncryptionConfiguration": [
-            {
-              "ServerSideEncryptionByDefault": {
-                "SSEAlgorithm": "AES256"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "ServerlessDeploymentBucketPolicy": {
-      "Type": "AWS::S3::BucketPolicy",
-      "Properties": {
-        "Bucket": {
-          "Ref": "ServerlessDeploymentBucket"
-        },
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": "s3:*",
-              "Effect": "Deny",
-              "Principal": "*",
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":s3:::",
-                      {
-                        "Ref": "ServerlessDeploymentBucket"
-                      },
-                      "/*"
-                    ]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:",
-                      {
-                        "Ref": "AWS::Partition"
-                      },
-                      ":s3:::",
-                      {
-                        "Ref": "ServerlessDeploymentBucket"
-                      }
-                    ]
-                  ]
-                }
-              ],
-              "Condition": {
-                "Bool": {
-                  "aws:SecureTransport": false
-                }
-              }
-            }
-          ]
-        }
-      }
-    },
     "PingLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/lead-survey-backend-api-dev-ping"
+        "LogGroupName": "/aws/lambda/lead-survey-backend-endpoint-dev-ping"
       }
     },
     "GenerateDashreportLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/lead-survey-backend-api-dev-generate-report"
+        "LogGroupName": "/aws/lambda/lead-survey-backend-endpoint-dev-generate-report"
+      }
+    },
+    "TestPostLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/lead-survey-backend-endpoint-dev-testPost"
       }
     },
     "IamRoleLambdaExecution": {
@@ -108,7 +45,7 @@
               "Fn::Join": [
                 "-",
                 [
-                  "lead-survey-backend-api",
+                  "lead-survey-backend-endpoint",
                   "dev",
                   "lambda"
                 ]
@@ -126,7 +63,7 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lead-survey-backend-api-dev*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lead-survey-backend-endpoint-dev*:*"
                     }
                   ]
                 },
@@ -137,7 +74,7 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lead-survey-backend-api-dev*:*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lead-survey-backend-endpoint-dev*:*:*"
                     }
                   ]
                 },
@@ -146,43 +83,48 @@
                   "Action": [
                     "dynamodb:PutItem"
                   ],
-                  "Resource": "arn:aws:dynamodb:ap-southeast-2:*:table/lead-survey-backend-api-dev"
+                  "Resource": "arn:aws:dynamodb:ap-southeast-2:*:table/lead-survey-backend-endpoint-dev"
                 },
                 {
                   "Effect": "Allow",
                   "Action": [
                     "dynamodb:GetItem"
                   ],
-                  "Resource": "arn:aws:dynamodb:ap-southeast-2:*:table/lead-survey-backend-api-dev"
+                  "Resource": "arn:aws:dynamodb:ap-southeast-2:*:table/lead-survey-backend-endpoint-dev"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject"
+                  ],
+                  "Resource": "arn:aws:s3:::lead-survey-backend-endpoint-dev/*"
                 }
               ]
             }
           }
         ],
         "Path": "/",
-        "RoleName": "lead-survey-backend-api-dev-CloudFormationRole"
+        "RoleName": "lead-survey-backend-endpoint-dev-CloudFormationRole"
       }
     },
     "PingLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "S3Bucket": {
-            "Ref": "ServerlessDeploymentBucket"
-          },
-          "S3Key": "serverless/lead-survey-backend-api/dev/1724601139219-2024-08-25T15:52:19.219Z/lead-survey-backend-api.zip"
+          "S3Bucket": "serverless-framework-deployments-ap-southeast-2-35e4da54-cbb5",
+          "S3Key": "serverless/lead-survey-backend-endpoint/dev/1729561379546-2024-10-22T01:42:59.546Z/lead-survey-backend-endpoint.zip"
         },
         "Handler": "src/handlers/ping/ping.handler",
         "Runtime": "nodejs20.x",
-        "FunctionName": "lead-survey-backend-api-dev-ping",
+        "FunctionName": "lead-survey-backend-endpoint-dev-ping",
         "MemorySize": 1024,
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "DYNAMODB_TABLE": "lead-survey-backend-api-dev",
+            "DYNAMODB_TABLE": "lead-survey-backend-endpoint-dev",
             "NODE_ENV": "dev",
             "API_BASE_URL": "dev-api.example.com",
-            "S3_BUCKET": "lead-survey-backend-api-dev",
+            "S3_BUCKET": "lead-survey-backend-endpoint-dev",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -201,22 +143,20 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "S3Bucket": {
-            "Ref": "ServerlessDeploymentBucket"
-          },
-          "S3Key": "serverless/lead-survey-backend-api/dev/1724601139219-2024-08-25T15:52:19.219Z/lead-survey-backend-api.zip"
+          "S3Bucket": "serverless-framework-deployments-ap-southeast-2-35e4da54-cbb5",
+          "S3Key": "serverless/lead-survey-backend-endpoint/dev/1729561379546-2024-10-22T01:42:59.546Z/lead-survey-backend-endpoint.zip"
         },
         "Handler": "src/handlers/report/generate-report.handler",
         "Runtime": "nodejs20.x",
-        "FunctionName": "lead-survey-backend-api-dev-generate-report",
+        "FunctionName": "lead-survey-backend-endpoint-dev-generate-report",
         "MemorySize": 1024,
-        "Timeout": 6,
+        "Timeout": 30,
         "Environment": {
           "Variables": {
-            "DYNAMODB_TABLE": "lead-survey-backend-api-dev",
+            "DYNAMODB_TABLE": "lead-survey-backend-endpoint-dev",
             "NODE_ENV": "dev",
             "API_BASE_URL": "dev-api.example.com",
-            "S3_BUCKET": "lead-survey-backend-api-dev",
+            "S3_BUCKET": "lead-survey-backend-endpoint-dev",
             "NODE_OPTIONS": "--enable-source-maps"
           }
         },
@@ -228,34 +168,75 @@
         }
       },
       "DependsOn": [
-        "GenerateDashreportLogGroup",
-        "ReportsBucket"
+        "GenerateDashreportLogGroup"
       ]
     },
-    "PingLambdaVersionI57eRW68JUN9vISm9AByzGQNsAqKh68VUVIMvR4HDw": {
+    "TestPostLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "serverless-framework-deployments-ap-southeast-2-35e4da54-cbb5",
+          "S3Key": "serverless/lead-survey-backend-endpoint/dev/1729561379546-2024-10-22T01:42:59.546Z/lead-survey-backend-endpoint.zip"
+        },
+        "Handler": "src/handlers/testPost/post.handler",
+        "Runtime": "nodejs20.x",
+        "FunctionName": "lead-survey-backend-endpoint-dev-testPost",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "DYNAMODB_TABLE": "lead-survey-backend-endpoint-dev",
+            "NODE_ENV": "dev",
+            "API_BASE_URL": "dev-api.example.com",
+            "S3_BUCKET": "lead-survey-backend-endpoint-dev",
+            "NODE_OPTIONS": "--enable-source-maps"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "TestPostLogGroup"
+      ]
+    },
+    "PingLambdaVersionk4M31jN0CTeghq8xCyItEjp2c5CmVj8Ty8XZv5qV5xo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "PingLambdaFunction"
         },
-        "CodeSha256": "fnNlS0RetlBSTQ1bpLDKno1/LyPlJOQc9B043FRde7o="
+        "CodeSha256": "Hp8sebeyTjMqLHHE06VkWezhjk91jmzmMkrbBFNth74="
       }
     },
-    "GenerateDashreportLambdaVersiondgYSsDYg8HtVpDO1XY07npYoHpeoPWN62GbXC0Ao": {
+    "GenerateDashreportLambdaVersion3yBUGzo9Q5QtlwJzIsSOqqTbZcpuaOA8KrpaV3g": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GenerateDashreportLambdaFunction"
         },
-        "CodeSha256": "fnNlS0RetlBSTQ1bpLDKno1/LyPlJOQc9B043FRde7o="
+        "CodeSha256": "Hp8sebeyTjMqLHHE06VkWezhjk91jmzmMkrbBFNth74="
+      }
+    },
+    "TestPostLambdaVersionpb2WSQ1mrBGjeDifn0HNdeVTHYEE8Jae4H4iu8QXnE": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "TestPostLambdaFunction"
+        },
+        "CodeSha256": "Hp8sebeyTjMqLHHE06VkWezhjk91jmzmMkrbBFNth74="
       }
     },
     "ApiGatewayRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Name": "dev-lead-survey-backend-api",
+        "Name": "dev-lead-survey-backend-endpoint",
         "EndpointConfiguration": {
           "Types": [
             "EDGE"
@@ -294,6 +275,21 @@
         }
       }
     },
+    "ApiGatewayResourceTestDashpost": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "test-post",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
     "ApiGatewayMethodPingOptions": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
@@ -322,7 +318,7 @@
               "StatusCode": "200",
               "ResponseParameters": {
                 "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
               },
               "ResponseTemplates": {
@@ -367,7 +363,7 @@
               "StatusCode": "200",
               "ResponseParameters": {
                 "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
               },
               "ResponseTemplates": {
@@ -378,6 +374,51 @@
         },
         "ResourceId": {
           "Ref": "ApiGatewayResourceGenerateDashreport"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodTestDashpostOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceTestDashpost"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -476,7 +517,53 @@
         "GenerateDashreportLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1724601137113": {
+    "ApiGatewayMethodTestDashpostPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceTestDashpost"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "TestPostLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "TestPostLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayDeployment1729561370371": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -487,8 +574,10 @@
       "DependsOn": [
         "ApiGatewayMethodPingOptions",
         "ApiGatewayMethodGenerateDashreportOptions",
+        "ApiGatewayMethodTestDashpostOptions",
         "ApiGatewayMethodPingGet",
-        "ApiGatewayMethodGenerateDashreportPost"
+        "ApiGatewayMethodGenerateDashreportPost",
+        "ApiGatewayMethodTestDashpostPost"
       ]
     },
     "PingLambdaPermissionApiGateway": {
@@ -565,6 +654,43 @@
         }
       }
     },
+    "TestPostLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "TestPostLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
     "ItemsTable": {
       "Type": "AWS::DynamoDB::Table",
       "Properties": {
@@ -581,13 +707,13 @@
           }
         ],
         "BillingMode": "PAY_PER_REQUEST",
-        "TableName": "lead-survey-backend-api-dev"
+        "TableName": "lead-survey-backend-endpoint-dev"
       }
     },
     "ReportsBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "BucketName": "lead-survey-backend-api-dev",
+        "BucketName": "lead-survey-backend-endpoint-dev",
         "PublicAccessBlockConfiguration": {
           "BlockPublicAcls": false,
           "BlockPublicPolicy": false,
@@ -611,7 +737,7 @@
               "Action": [
                 "s3:GetObject"
               ],
-              "Resource": "arn:aws:s3:::lead-survey-backend-api-dev/*"
+              "Resource": "arn:aws:s3:::lead-survey-backend-endpoint-dev/*"
             }
           ]
         }
@@ -620,29 +746,36 @@
   },
   "Outputs": {
     "ServerlessDeploymentBucketName": {
-      "Value": {
-        "Ref": "ServerlessDeploymentBucket"
-      },
+      "Value": "serverless-framework-deployments-ap-southeast-2-35e4da54-cbb5",
       "Export": {
-        "Name": "sls-lead-survey-backend-api-dev-ServerlessDeploymentBucketName"
+        "Name": "sls-lead-survey-backend-endpoint-dev-ServerlessDeploymentBucketName"
       }
     },
     "PingLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PingLambdaVersionI57eRW68JUN9vISm9AByzGQNsAqKh68VUVIMvR4HDw"
+        "Ref": "PingLambdaVersionk4M31jN0CTeghq8xCyItEjp2c5CmVj8Ty8XZv5qV5xo"
       },
       "Export": {
-        "Name": "sls-lead-survey-backend-api-dev-PingLambdaFunctionQualifiedArn"
+        "Name": "sls-lead-survey-backend-endpoint-dev-PingLambdaFunctionQualifiedArn"
       }
     },
     "GenerateDashreportLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GenerateDashreportLambdaVersiondgYSsDYg8HtVpDO1XY07npYoHpeoPWN62GbXC0Ao"
+        "Ref": "GenerateDashreportLambdaVersion3yBUGzo9Q5QtlwJzIsSOqqTbZcpuaOA8KrpaV3g"
       },
       "Export": {
-        "Name": "sls-lead-survey-backend-api-dev-GenerateDashreportLambdaFunctionQualifiedArn"
+        "Name": "sls-lead-survey-backend-endpoint-dev-GenerateDashreportLambdaFunctionQualifiedArn"
+      }
+    },
+    "TestPostLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "TestPostLambdaVersionpb2WSQ1mrBGjeDifn0HNdeVTHYEE8Jae4H4iu8QXnE"
+      },
+      "Export": {
+        "Name": "sls-lead-survey-backend-endpoint-dev-TestPostLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {
@@ -668,7 +801,7 @@
         ]
       },
       "Export": {
-        "Name": "sls-lead-survey-backend-api-dev-ServiceEndpoint"
+        "Name": "sls-lead-survey-backend-endpoint-dev-ServiceEndpoint"
       }
     }
   }

@@ -1,126 +1,143 @@
-import PDFDocument from 'pdfkit';
-import AWS from 'aws-sdk';
+const chromium = require('@sparticuz/chromium');
+const awsSDK = require('aws-sdk');
+const { S3, DynamoDB } = awsSDK;
+const fs = require('fs');
+const path = require('path');
+let puppeteer;
 
-const s3 = new AWS.S3();
+// Check if we're running in a Lambda environment or locally
+const isLocal = process.env.IS_OFFLINE;
+
+if (isLocal) {
+  puppeteer = require('puppeteer'); // Use full Puppeteer for local testing
+} else {
+  puppeteer = require('puppeteer-core'); // Use puppeteer-core for Lambda
+}
+
+const s3 = new S3();
 const S3Bucket = process.env.S3_BUCKET || 'cogdrisk-reports';
 
-export const handler = async (event) => {
+const dynamoDb = new DynamoDB.DocumentClient();
+const DynamoDBTable = process.env.DYNAMODB_TABLE || 'Reports';
+
+exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
-    const {
-      cogDriskScore,
-      dateOfAssessment,
-      demographicFactors,
-      medicalRiskFactors,
-      lifestyleHabits,
-      environmentalExposure,
-      recommendations
-    } = body;
+    const data = body.data;
+    const personal = body.personal;
+    // console.log(data);
+    const chPath = await chromium.executablePath();
 
-    const doc = new PDFDocument({
-      size: 'A4',
-      margins: { top: 50, bottom: 50, left: 50, right: 50 }
+    // Configure Puppeteer based on environment
+    const browser = await puppeteer.launch({
+      args: isLocal ? [] : chromium.args, // Use appropriate arguments
+      defaultViewport: chromium.defaultViewport,
+      executablePath: isLocal ? undefined : chPath, // Local does not need `executablePath`
+      headless: isLocal ? true : chromium.headless,
     });
-    let buffers = [];
-    doc.on('data', buffers.push.bind(buffers));
 
-    // Header
-    doc.rect(0, 0, doc.page.width, 100).fill('#4A5AC4');
-    doc.fill('white').fontSize(32).text('CogDrisk', 50, 30);
-    doc.fontSize(16).text('PERSONALISED DEMENTIA RISK ASSESSMENT', 50, 70);
+    const page = await browser.newPage();
 
-    doc.fill('black').fontSize(12).text(`Date of Assessment: ${dateOfAssessment}`, 50, 120);
-    doc.moveDown();
-    doc.text('Congratulations on completing the dementia risk assessment.');
-    doc.moveDown();
-    doc.fontSize(14).text(`Your CogDrisk dementia score is ${cogDriskScore}`, { bold: true });
-    doc.moveDown();
-    doc.fontSize(12).text('The risk score has been developed using an evidence-based approach. The risk score ranges from 0 to 48.25, with a higher score indicating higher risk.');
+    // Load local HTML file (make sure this file is included in your Lambda deployment package)
+    const filePath = path.resolve(__dirname, './templates/index.html');
+    const htmlContent = fs.readFileSync(filePath, 'utf8');
 
-    // Risk score gauge
-    const gaugeY = doc.y + 20;
-    doc.arc(doc.page.width / 2, gaugeY + 50, 50, 0, Math.PI).stroke();
-    const angle = (cogDriskScore / 48.25) * Math.PI;
-    const needleEndX = doc.page.width / 2 + 45 * Math.cos(angle - Math.PI / 2);
-    const needleEndY = gaugeY + 50 + 45 * Math.sin(angle - Math.PI / 2);
-    doc.moveTo(doc.page.width / 2, gaugeY + 50)
-      .lineTo(needleEndX, needleEndY)
-      .stroke('red');
-    doc.fontSize(10).text('0', doc.page.width / 2 - 55, gaugeY + 60);
-    doc.text('48.25', doc.page.width / 2 + 40, gaugeY + 60);
+    // Load CSS and SVG files
+    const cssPath = path.resolve(__dirname, './templates/styles.css');
+    const cssContent = fs.readFileSync(cssPath, 'utf8');
+    const MAX_SCORE = 48.25;
+    const finalCSS = cssContent.replace("--gauge-dementia-percent: 0;", `--gauge-dementia-percent: ${data.scores.dementia_score / MAX_SCORE};`)
+      .replace("--gauge-stroke-percent: 0;", `--gauge-stroke-percent: ${data.scores.stroke_score / MAX_SCORE};`)
+      .replace("--gauge-mi-percent: 0;", `--gauge-mi-percent: ${data.scores.mi_score / MAX_SCORE};`)
+      .replace("--gauge-diabetes-percent: 0;", `--gauge-diabetes-percent: ${data.scores.diabetes_score / MAX_SCORE};`);
 
-    doc.moveDown(4);
+    const svgPath = path.resolve(__dirname, './templates/gauge.svg');
+    const svgContent = fs.readFileSync(svgPath, 'utf8');
 
-    // Factors table
-    doc.fontSize(12).text('Below is your personalised report based on your current health and lifestyle factors.');
-    doc.moveDown();
+    const svg2Path = path.resolve(__dirname, './templates/gauge-needle.svg');
+    const svg2Content = fs.readFileSync(svg2Path, 'utf8');
 
-    const tableTop = doc.y;
-    const tableLeft = 50;
-    const colWidth = (doc.page.width - 100) / 2;
+    // Inject CSS and SVG content into the HTML
+    const htmlWithCSS = htmlContent.replaceAll('<link rel="stylesheet" href="styles.css">', `<style>${finalCSS}</style>`);
+    const htmlWithSVG = htmlWithCSS.replaceAll('<img src="gauge.svg" alt="gauge" />', svgContent);
+    const htmlWithSVG2 = htmlWithSVG.replaceAll('<img src="gauge-needle.svg" alt="gauge-needle" class="svg-gauge-needle" />', svg2Content);
+    const finalHTML = htmlWithSVG2;
 
-    doc.fillColor('#4CAF50').rect(tableLeft, tableTop, colWidth, 30).fill();
-    doc.fillColor('#FF9800').rect(tableLeft + colWidth, tableTop, colWidth, 30).fill();
+    await page.setContent(finalHTML, { waitUntil: 'networkidle0' });
 
-    doc.fillColor('white').text('Keep up the good work!', tableLeft + 10, tableTop + 10);
-    doc.text('Room for improvement', tableLeft + colWidth + 10, tableTop + 10);
+    await page.evaluate((data) => {
+      document.querySelector('#dementia-gauge .risk-score').innerHTML = data.scores.dementia_score;
+      document.querySelector('#stroke-gauge .risk-score').innerHTML = data.scores.stroke_score;
+      document.querySelector('#mi-gauge .risk-score').innerHTML = data.scores.mi_score;
+      document.querySelector('#diabetes-gauge .risk-score').innerHTML = data.scores.diabetes_score;
+    }, data);
 
-    doc.fillColor('black');
-    let currentY = tableTop + 30;
 
-    const addRow = (category, good, bad) => {
-      doc.fontSize(10).text(category, tableLeft, currentY, { width: colWidth, bold: true });
-      currentY += 20;
-      if (good && good.length > 0) {
-        good.forEach(item => {
-          doc.text('✓ ' + item, tableLeft + 10, currentY, { width: colWidth - 20 });
-          currentY += 20;
-        });
-      }
-      if (bad && bad.length > 0) {
-        bad.forEach(item => {
-          doc.text('✗ ' + item, tableLeft + colWidth + 10, currentY - (good.length * 20), { width: colWidth - 20 });
-          currentY += 20;
-        });
-      }
+    // Generate PDF from the HTML content
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '32px',
+        right: '32px',
+        bottom: '32px',
+        left: '32px',
+      },
+    });
+
+    await browser.close();
+    const dt = Date.now();
+    // Upload the PDF to S3
+    const fileName = `report-${dt}-${"0"}.pdf`;
+    await s3
+      .putObject({
+        Bucket: S3Bucket,
+        Key: fileName,
+        Body: pdfBuffer,
+        ContentType: 'application/pdf',
+      })
+      .promise();
+
+    const region = process.env.AWS_REGION || "ap-southeast-2";
+    const URL = `https://${S3Bucket}.s3.${region}.amazonaws.com/${fileName}`
+
+    const dynamoParams = {
+      TableName: DynamoDBTable,
+      Item: {
+        id: dt.toString(),
+        personal,
+        fileName,
+        url: URL,
+        data: data, // Storing data object if needed
+        createdAt: new Date().toISOString(),
+      },
     };
 
-    addRow('Demographic factor', [], demographicFactors);
-    addRow('Medical risk factors', medicalRiskFactors.filter(f => f.startsWith('No') || f.startsWith('Good')), medicalRiskFactors.filter(f => f.startsWith('Having')));
-    addRow('Lifestyle habits and diet', lifestyleHabits.filter(h => !h.startsWith('Low') && !h.startsWith('Eating')), lifestyleHabits.filter(h => h.startsWith('Low') || h.startsWith('Eating')));
-    addRow('Environmental exposure', [], environmentalExposure);
+    await dynamoDb.put(dynamoParams).promise();
 
-    // Recommendations and footer on new pages will be handled similarly to your original code
-
-    doc.end();
-
-    return new Promise((resolve, reject) => {
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(buffers);
-        const params = {
-          Bucket: S3Bucket,
-          Key: `report-${Date.now()}.pdf`,
-          Body: pdfBuffer,
-          ContentType: 'application/pdf'
-        };
-
-        s3.upload(params, (err, data) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve({
-              statusCode: 200,
-              body: JSON.stringify({ message: 'PDF generated and uploaded successfully', url: data.Location })
-            });
-          }
-        });
-      });
-    });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'PDF generated successfully', fileName, URL }),
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST'
+      },
+    };
   } catch (error) {
     console.log('An error occurred:', error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'An error occurred', error: error.message })
+      body: JSON.stringify({
+        message: 'An error occurred',
+        error: error.message,
+        isLocal
+      }),
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST'
+      },
     };
   }
 };

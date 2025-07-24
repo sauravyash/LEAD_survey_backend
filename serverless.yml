@@ -2,13 +2,21 @@
 # org: yaash
 # "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 # app: lead-survey-app
-service: lead-survey-backend-api
+service: lead-survey-backend-endpoint
 
 build:
   esbuild:
-    bundle: true
+    # bundle: true
     # minify: true
-    sourcemap: true
+    external: ["@sparticuz/chromium"]
+    loader:
+      '.html': 'text'   # Load HTML
+      '.svg': 'text'    # Load svg
+      '.css': 'text'    # Load CSS 
+
+package:
+  patterns:
+    - src/handlers/report/templates/*
 
 provider:
   name: aws
@@ -34,16 +42,17 @@ provider:
       Action:
         - dynamodb:GetItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+      Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
 
 plugins:
   - serverless-offline
-  # - serverless-plugin-typescript
-
 
 stages:
   default:
     S3_BUCKET: ${self:provider.environment.S3_BUCKET}
-
 
 resources:
   Resources:
@@ -87,15 +96,39 @@ functions:
       - http:
           path: ping
           method: get
-          cors: true
-    # dependsOn:
-    #   - ItemsTable
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
   generate-report:
     handler: src/handlers/report/generate-report.handler
+    memorySize: 1024 # Minimum recommended
+    timeout: 30 # Increase this as needed
     events:
       - http:
           path: generate-report
           method: post
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+
+  testPost:
+    handler: src/handlers/testPost/post.handler
+    events:
+      - http:
+          path: test-post
+          method: post
           cors: true
-    dependsOn:
-      - ReportsBucket
