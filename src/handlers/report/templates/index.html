@@ -10,16 +10,16 @@
 
 <body>
     <div class="header">
-        <h1>DemNCDrisk</h1>
-        <p>PERSONALISED DEMENTIA RISK ASSESSMENT</p>
+        <h1>DemNCDrisk (<span id="survey-type-label"></span> Survey)</h1>
+        <p>PERSONALISED DEMENTIA AND NON-COMMUNICABLE DISEASES RISK ASSESSMENT</p>
     </div>
 
-    <p>Date of Assessment: <span id="date">5/14/2024</span></p>
-    <p>Congratulations on completing the dementia risk assessment.</p>
+    <p>Date of Assessment: <span id="date-label">5/14/2024</span></p>
+    <p>Congratulations on completing the dementia and non-communicable diseases (NCDs) risk assessment. </p>
 
     <div class="flex-container" id="dementia-gauge">
         <div class="text-content">
-            <p>Your DemNCDrisk dementia score is <span class="risk-score">30.25</span></p>
+            <p class="score-text">Your DemNCDrisk dementia score is <span class="risk-score">30.25</span></p>
             <p>The risk score has been developed using an evidence-based approach. The risk score ranges from 0 to
                 48.25, with a higher score indicating higher risk.</p>
         </div>
@@ -31,63 +31,9 @@
         </div>
     </div>
 
-    <p>Below is your personalised report based on your current health and lifestyle factors.</p>
-
-    <!-- <table>
-        <tr>
-            <th></th>
-            <th class="good">Keep up the good work!</th>
-            <th class="improve">Room for improvement</th>
-        </tr>
-        <tr>
-            <td></td>
-            <td>You reported:</td>
-            <td>You reported:</td>
-        </tr>
-        <tr>
-            <td>Demographic factor</td>
-            <td></td>
-            <td><span class="cross"></span>Your highest qualification was less than secondary education</td>
-        </tr>
-        <tr>
-            <td>Medical risk factors</td>
-            <td>
-                <p><span class="checkmark"></span>No prior stroke</p>
-                <p><span class="checkmark"></span>Good levels of sleep</p>
-            </td>
-            <td>
-                <p><span class="cross"></span>Your weight is in the obese range</p>
-                <p><span class="cross"></span>Having high cholesterol level</p>
-                <p><span class="cross"></span>Having diabetes</p>
-                <p><span class="cross"></span>Having prior brain injury</p>
-                <p><span class="cross"></span>Having hypertension</p>
-                <p><span class="cross"></span>Having atrial fibrillation</p>
-                <p><span class="cross"></span>Having depressive symptoms</p>
-            </td>
-        </tr>
-        <tr>
-            <td>Lifestyle habits and diet</td>
-            <td>
-                <p><span class="checkmark"></span>High levels of social engagement</p>
-                <p><span class="checkmark"></span>You drink low to moderate levels of alcohol</p>
-                <p><span class="checkmark"></span>You do not smoke</p>
-            </td>
-            <td>
-                <p><span class="cross"></span>Low levels of physical activity</p>
-                <p><span class="cross"></span>Low levels of cognitive engagement</p>
-                <p><span class="cross"></span>Eating fish less than once a week</p>
-            </td>
-        </tr>
-        <tr>
-            <td>Environmental exposure</td>
-            <td></td>
-            <td><span class="cross"></span>Being exposed to pesticides</td>
-        </tr>
-    </table> -->
-
     <div class="flex-container" id="stroke-gauge">
         <div class="text-content">
-            <p>Your DemNCDrisk stroke score is <span class="risk-score">30.25</span></p>
+            <p class="score-text">Your DemNCDrisk stroke score is <span class="risk-score">30.25</span></p>
             <p>The risk score has been developed using an evidence-based approach. The risk score ranges from 0 to
                 48.25, with a higher score indicating higher risk.</p>
         </div>
@@ -101,7 +47,7 @@
 
     <div class="flex-container" id="mi-gauge">
         <div class="text-content">
-            <p>Your DemNCDrisk Heart Attack score is <span class="risk-score">30.25</span></p>
+            <p class="score-text">Your DemNCDrisk Heart Attack score is <span class="risk-score">30.25</span></p>
             <p>The risk score has been developed using an evidence-based approach. The risk score ranges from 0 to
                 48.25, with a higher score indicating higher risk.</p>
         </div>
@@ -115,7 +61,7 @@
 
     <div class="flex-container" id="diabetes-gauge">
         <div class="text-content">
-            <p>Your DemNCDrisk diabetes score is <span class="risk-score">30.25</span></p>
+            <p class="score-text">Your DemNCDrisk diabetes score is <span class="risk-score">30.25</span></p>
             <p>The risk score has been developed using an evidence-based approach. The risk score ranges from 0 to
                 48.25, with a higher score indicating higher risk.</p>
         </div>
@@ -127,21 +73,101 @@
         </div>
     </div>
 
+    <p>Below is your personalised report based on your current health and lifestyle factors.</p>
 
+    <table id="summary-report-table">
+        <thead>
+            <tr>
+                <th style="background-color: #fff;border-left-color: #fff; border-top-color: #fff;"></th>
+                <th class="header-good">
+                    Keep up the good work!<br>
+                    <small>You reported:</small>
+                </th>
+                <th class="header-improve">
+                    Room for improvement<br>
+                    <small>You reported:</small>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Demographic factors</th>
+                <td id="demographic-factors-list-good"></td>
+                <td id="demographic-factors-list-improve"></td>
+            </tr>
+            <tr>
+                <th>Medical risk factors</th>
+                <td id="medical-risk-factors-list-good">
+                </td>
+                <td id="medical-risk-factors-list-improve">
+                </td>
+            </tr>
+            <tr>
+                <th>Lifestyle habits and diet</th>
+                <td id="lifestyle-habits-and-diet-list-good"></td>
+                <td id="lifestyle-habits-and-diet-list-improve"></td>
+            </tr>
+            <tr>
+                <th>Environmental exposure</th>
+                <td id="environmental-exposure-list-good"> </td>
+                <td id="environmental-exposure-list-improve"></td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <p>No matter what your age is, it is never too late to incorporate healthy lifestyle habits and
+        monitor your health regularly. We recommend the following strategies to reduce the risk of
+        developing dementia which are based on national and international guidelines.</p>
+    <div class="disclaimer">
+        <p>
+            Please note: This tool is not intended to be used as a diagnosis tool for dementia and NCDs.
+            If you have any concerns, you should consult your medical practitioner to receive medical advice.
+        </p>
+    </div>
+
+    <h2>Dementia and NCD prevention recommendations</h2>
+
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Risk/protective factor</th>
+                <th>Recommendations</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>Body Mass Index:</strong><br>
+                    You have reported that you are 40 years old with a height of 170 cm and a weight of 83 kg which
+                    results in a BMI of 28.7. You fall under the overweight category.
+                </td>
+                <td>
+                    Currently the evidence suggests that being overweight at your age is associated with an increased
+                    risk of stroke, heart attack, and diabetes. For your overall health, it is recommended that you seek
+                    advice from your GP regarding your weight.
+                </td>
+            </tr>
+            <tr>
+                <td class="full-span" colspan="2">
+                    For more information, refer to
+                    <ul>
+                        <li><a href="#">Australian Dietary Guidelines</a></li>
+                        <li><a href="#">Department of Health – Healthy Weight Guide</a></li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <div class="footer">
-        <h1>Notes</h1>
+        <h2>Notes</h2>
         <!-- <p>Evidence for risk scores in middle-aged adults is based on the risk profile you would have if
             you retained this profile at 65 or older. As more studies become available, we will be able to
             validate scores at younger ages.</p> -->
-
-        <p>No matter what your age is, it is never too late to incorporate healthy lifestyle habits and
-            monitor your health regularly. We recommend the following strategies to reduce the risk of
-            developing dementia which are based on national and international guidelines.</p>
-
-        <p><i>Please note that this tool is not intended to be used as a diagnosis tool for dementia. If you
-                have any concerns, you should consult your medical practitioner to receive specific medical
-                advice.</i></p>
+        <p>Evidence for risk scores in middle-aged adults is based on the risk profile you would have if you retained
+            this profile at 65 or older. As more studies become available, we will be able to validate scores at younger
+            ages.</p>
     </div>
 </body>
 

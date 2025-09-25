@@ -2,12 +2,16 @@
 # org: yaash
 # "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 # app: lead-survey-app
-service: lead-survey-backend-endpoint
+service: lead-survey-backend-endpoint-${env:SURVEY_TYPE}
+
+custom:
+  surveyType: ${env:SURVEY_TYPE}
 
 build:
   esbuild:
-    # bundle: true
-    # minify: true
+    bundle: true
+    minify: true
+    # sourcemap: false
     external: ["@sparticuz/chromium"]
     loader:
       '.html': 'text'   # Load HTML
@@ -15,8 +19,13 @@ build:
       '.css': 'text'    # Load CSS 
 
 package:
-  patterns:
-    - src/handlers/report/templates/*
+  individually: false
+  excludeDevDependencies: true
+  exclude:
+    - node_modules/aws-sdk/**
+    - node_modules/**/.bin/**      # (optional) remove any CLI bin folders
+    - .git/**                      # (optional) remove your git folder
+    - docs/**                      # (optional) docs or tests if you have them
 
 provider:
   name: aws
@@ -28,6 +37,7 @@ provider:
     NODE_ENV: ${self:provider.stage}
     API_BASE_URL: ${opt:stage, 'dev'}-api.example.com
     S3_BUCKET: ${self:service}-${self:provider.stage}
+    SURVEY_TYPE: ${env:SURVEY_TYPE}
 
   iam:
     role:
@@ -44,8 +54,13 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
     - Effect: Allow
       Action:
+        - dynamodb:Scan
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
         - s3:PutObject
       Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
+      
 
 plugins:
   - serverless-offline
@@ -110,6 +125,9 @@ functions:
     handler: src/handlers/report/generate-report.handler
     memorySize: 1024 # Minimum recommended
     timeout: 30 # Increase this as needed
+    package:
+      include:
+        - src/handlers/report/templates/**
     events:
       - http:
           path: generate-report
@@ -123,12 +141,43 @@ functions:
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
+              - access-control-allow-headers
+              - access-control-allow-methods
+              - access-control-allow-origin
             allowCredentials: false
-
-  testPost:
-    handler: src/handlers/testPost/post.handler
+  get-survey-data:
+    handler: src/handlers/get-survey-data/get-survey-data.handler
+    memorySize: 1024 # Minimum recommended
+    timeout: 30 # Increase this as needed
     events:
       - http:
-          path: test-post
+          path: get-survey-data
+          method: get
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+  send-consent-form:
+    handler: src/handlers/send-consent-form/send-consent-form.handler
+    memorySize: 1024 # Minimum recommended
+    timeout: 30 # Increase this as needed
+    events:
+      - http:
+          path: send-consent-form
           method: post
-          cors: true
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false

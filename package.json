@@ -3,18 +3,26 @@
   "version": "1.0.0",
   "author": "Arludo",
   "scripts": {
-    "start": "sls offline",
-    "deploy:dev": "serverless deploy --stage dev",
-    "deploy:prod": "serverless deploy --stage prod"
+    "start:public": "SURVEY_TYPE=public sls offline --httpsProtocol certs --corsAllowOrigin '*' --reloadHandler",
+    "start:gp": "SURVEY_TYPE=gp sls offline --httpsProtocol certs --corsAllowOrigin '*' --reloadHandler",
+    "deploy:public:dev": "SURVEY_TYPE=public serverless deploy --stage dev",
+    "deploy:gp:dev": "SURVEY_TYPE=gp serverless deploy --stage dev",
+    "deploy:public:prod": "SURVEY_TYPE=public serverless deploy --stage prod",
+    "deploy:gp:prod": "SURVEY_TYPE=gp serverless deploy --stage prod",
+    "deploy:dev": "yarn deploy:public:dev && yarn deploy:gp:dev",
+    "deploy:prod": "yarn deploy:public:prod && yarn deploy:gp:prod",
+    "link:templates": "mkdir -p \"$(pwd)/.serverless/build/src/handlers/report\" && [ -e \"$(pwd)/.serverless/build/src/handlers/report/templates\" ] || ln -s \"$(pwd)/src/handlers/report/templates\" \"$(pwd)/.serverless/build/src/handlers/report/templates\"",
+    "prestart:public": "yarn link:templates",
+    "prestart:gp": "yarn link:templates"
   },
   "devDependencies": {
     "esbuild-plugin-copy": "^2.1.1",
-    "puppeteer": "^23.5.1"
+    "puppeteer": "^24"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^129.0.0",
+    "@sparticuz/chromium": "^138.0.2",
     "aws-sdk": "^2.1671.0",
-    "puppeteer-core": "^23.5.3",
+    "puppeteer-core": "^24.22.3",
     "serverless": "^4.1.21",
     "serverless-offline": "^13.7.0",
     "typescript": "^5.6.3",
