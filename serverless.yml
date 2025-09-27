@@ -11,7 +11,7 @@ build:
   esbuild:
     bundle: true
     minify: true
-    # sourcemap: false
+    # sourcemap: true
     external: ["@sparticuz/chromium"]
     loader:
       '.html': 'text'   # Load HTML

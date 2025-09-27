@@ -235,10 +235,10 @@ export async function evaluateRecommendationTable(page, data) {
       },
       {
         label: 'Education',
-        applies: _ => true,
+        applies: input => input.edu_cat !== 'tertiary',
         recs: [
           {
-            when: a => a <= 39,
+            when: age => age <= 39,
             text: `Engaging in further education and mentally stimulating activities can help build your cognitive reserve, which may reduce the risk of developing health conditions such as dementia, stroke, heart attack, and diabetes.`,
             refs: educationRefs
           },
