@@ -10,8 +10,8 @@ custom:
 build:
   esbuild:
     bundle: true
-    minify: true
-    # sourcemap: true
+    # minify: true
+    sourcemap: false
     external: ["@sparticuz/chromium"]
     loader:
       '.html': 'text'   # Load HTML
@@ -21,11 +21,12 @@ build:
 package:
   individually: false
   excludeDevDependencies: true
-  exclude:
-    - node_modules/aws-sdk/**
-    - node_modules/**/.bin/**      # (optional) remove any CLI bin folders
-    - .git/**                      # (optional) remove your git folder
-    - docs/**                      # (optional) docs or tests if you have them
+  patterns:
+    - 'src/handlers/report/templates/**'
+    - '!node_modules/aws-sdk/**'
+    - '!node_modules/**/.bin/**'      # (optional) remove any CLI bin folders
+    - '!.git/**'                      # (optional) remove your git folder
+    - '!.git/**docs/**'                      # (optional) docs or tests if you have them
 
 provider:
   name: aws
@@ -125,9 +126,6 @@ functions:
     handler: src/handlers/report/generate-report.handler
     memorySize: 1024 # Minimum recommended
     timeout: 30 # Increase this as needed
-    package:
-      include:
-        - src/handlers/report/templates/**
     events:
       - http:
           path: generate-report
